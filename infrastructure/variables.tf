@@ -16,6 +16,18 @@ variable "deploy_kubernetes" {
   default     = true
 }
 
+variable "deploy_crd_resources" {
+  description = "Set true only after CRDs from Helm releases are installed (Argo Rollouts, cert-manager, Gateway API)."
+  type        = bool
+  default     = true
+}
+
+variable "enable_gateway_api" {
+  description = "Enable Gateway API Helm release and Gateway API custom resources. Keep false unless you install Gateway API CRDs from a valid source."
+  type        = bool
+  default     = true
+}
+
 variable "frontend_image" {
   description = "Container image for the Angular frontend application."
   type        = string

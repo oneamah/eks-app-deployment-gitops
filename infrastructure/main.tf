@@ -966,7 +966,7 @@ resource "kubernetes_namespace_v1" "monitoring" {
 }
 
 resource "helm_release" "gateway_api" {
-  count            = var.deploy_helm ? 1 : 0
+  count            = var.deploy_helm && var.enable_gateway_api ? 1 : 0
   name             = "gateway-api"
   repository       = "https://gateway-api.sigs.k8s.io/helm-charts"
   chart            = "gateway-api"
@@ -1006,7 +1006,7 @@ resource "helm_release" "argocd_rollouts" {
 }
 
 resource "kubernetes_manifest" "backend_deployment" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Rollout"
@@ -1076,7 +1076,7 @@ resource "kubernetes_manifest" "backend_deployment" {
 }
 
 resource "kubernetes_manifest" "frontend_deployment" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Rollout"
@@ -1162,7 +1162,7 @@ resource "kubernetes_manifest" "frontend_deployment" {
 }
 
 resource "kubernetes_manifest" "gatewayClass" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources && var.enable_gateway_api ? 1 : 0
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "GatewayClass"
@@ -1178,7 +1178,7 @@ resource "kubernetes_manifest" "gatewayClass" {
 }
 
 resource "kubernetes_manifest" "gateway" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources && var.enable_gateway_api ? 1 : 0
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
@@ -1216,7 +1216,7 @@ resource "kubernetes_manifest" "gateway" {
 }
 
 resource "kubernetes_manifest" "tls_certificate" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
@@ -1236,7 +1236,7 @@ resource "kubernetes_manifest" "tls_certificate" {
 }
 
 resource "kubernetes_manifest" "cluster_issuer" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "ClusterIssuer"
@@ -1523,7 +1523,7 @@ resource "kubernetes_manifest" "monitoring_ingress" {
 }
 
 resource "kubernetes_manifest" "frontend_route" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources && var.enable_gateway_api ? 1 : 0
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "HTTPRoute"
@@ -1564,7 +1564,7 @@ resource "kubernetes_manifest" "frontend_route" {
 }
 
 resource "kubernetes_manifest" "backend_route" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = var.deploy_kubernetes && var.deploy_crd_resources && var.enable_gateway_api ? 1 : 0
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "HTTPRoute"

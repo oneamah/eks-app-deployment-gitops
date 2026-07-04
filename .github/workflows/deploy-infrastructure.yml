@@ -57,7 +57,13 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan -var="lb_certificate_arn=${{ env.LB_CERTIFICATE_ARN }}"
+        run: |
+          terraform plan -input=false -out=tfplan \
+            -var="lb_certificate_arn=${{ env.LB_CERTIFICATE_ARN }}" \
+            -var="deploy_helm=false" \
+            -var="deploy_kubernetes=false" \
+            -var="deploy_crd_resources=false" \
+            -var="enable_gateway_api=false"
 
       - name: Upload Terraform Plan Artifact
         uses: actions/upload-artifact@v4
