@@ -458,6 +458,7 @@ data "aws_iam_policy_document" "irsa_alb_controller_policy" {
       "ec2:DescribeVpcs",
       "ec2:DescribeVpcPeeringConnections",
       "ec2:DescribeSubnets",
+      "ec2:DescribeRouteTables",
       "ec2:DescribeSecurityGroups",
       "ec2:DescribeInstances",
       "ec2:DescribeNetworkInterfaces",
