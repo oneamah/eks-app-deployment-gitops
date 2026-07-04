@@ -1031,6 +1031,36 @@ resource "helm_release" "argocd_rollouts" {
   depends_on = [aws_eks_node_group.main]
 }
 
+resource "kubernetes_manifest" "backend_namespace" {
+  count = var.deploy_kubernetes ? 1 : 0
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.backend_namespace
+    }
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "kubernetes_manifest" "frontend_namespace" {
+  count = var.deploy_kubernetes ? 1 : 0
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.frontend_namespace
+    }
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "kubernetes_manifest" "backend_deployment" {
   count = var.deploy_kubernetes ? 1 : 0
   manifest = {
@@ -1091,6 +1121,8 @@ resource "kubernetes_manifest" "backend_deployment" {
     }
   }
 
+  depends_on = [kubernetes_manifest.backend_namespace]
+
 }
 
 resource "kubernetes_manifest" "frontend_deployment" {
@@ -1148,6 +1180,8 @@ resource "kubernetes_manifest" "frontend_deployment" {
       }
     }
   }
+
+  depends_on = [kubernetes_manifest.frontend_namespace]
 
 }
 
@@ -1626,6 +1660,8 @@ resource "kubernetes_manifest" "backend_network_policy" {
     }
   }
 
+  depends_on = [kubernetes_manifest.backend_namespace, kubernetes_manifest.frontend_namespace]
+
 }
 
 resource "kubernetes_manifest" "frontend_network_policy" {
@@ -1660,6 +1696,8 @@ resource "kubernetes_manifest" "frontend_network_policy" {
       ]
     }
   }
+
+  depends_on = [kubernetes_manifest.backend_namespace, kubernetes_manifest.frontend_namespace]
 
 }
 
