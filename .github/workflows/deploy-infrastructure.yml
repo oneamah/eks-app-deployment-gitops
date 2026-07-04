@@ -65,10 +65,22 @@ jobs:
       - name: Remove stale namespace ownership from state
         shell: bash
         run: |
-          terraform state rm 'kubernetes_manifest.backend_namespace[0]' || true
-          terraform state rm 'kubernetes_manifest.frontend_namespace[0]' || true
-          terraform state rm 'kubernetes_namespace_v1.backend[0]' || true
-          terraform state rm 'kubernetes_namespace_v1.frontend[0]' || true
+          set +e
+          for prefix in \
+            kubernetes_manifest.backend_namespace \
+            kubernetes_manifest.frontend_namespace \
+            kubernetes_namespace_v1.backend \
+            kubernetes_namespace_v1.frontend
+          do
+            matches=$(terraform state list | grep -E "^${prefix}(\\[[0-9]+\\])?$" || true)
+            if [ -n "$matches" ]; then
+              while IFS= read -r addr; do
+                [ -n "$addr" ] && terraform state rm "$addr"
+              done <<< "$matches"
+            else
+              echo "No state entries found for ${prefix}, skipping."
+            fi
+          done
 
       - name: Terraform Format
         run: terraform fmt --recursive -check
@@ -127,10 +139,22 @@ jobs:
       - name: Remove stale namespace ownership from state
         shell: bash
         run: |
-          terraform state rm 'kubernetes_manifest.backend_namespace[0]' || true
-          terraform state rm 'kubernetes_manifest.frontend_namespace[0]' || true
-          terraform state rm 'kubernetes_namespace_v1.backend[0]' || true
-          terraform state rm 'kubernetes_namespace_v1.frontend[0]' || true
+          set +e
+          for prefix in \
+            kubernetes_manifest.backend_namespace \
+            kubernetes_manifest.frontend_namespace \
+            kubernetes_namespace_v1.backend \
+            kubernetes_namespace_v1.frontend
+          do
+            matches=$(terraform state list | grep -E "^${prefix}(\\[[0-9]+\\])?$" || true)
+            if [ -n "$matches" ]; then
+              while IFS= read -r addr; do
+                [ -n "$addr" ] && terraform state rm "$addr"
+              done <<< "$matches"
+            else
+              echo "No state entries found for ${prefix}, skipping."
+            fi
+          done
 
       - name: Download Terraform Plan Artifact
         uses: actions/download-artifact@v4
