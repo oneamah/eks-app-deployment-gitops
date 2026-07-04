@@ -61,5 +61,5 @@ variable "manage_static_route53_records" {
 variable "lb_certificate_arn" {
   description = "ACM certificate ARN for the ALB HTTPS listener on port 443."
   type        = string
-  default = null
+  default     = null
 }
