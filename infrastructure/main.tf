@@ -968,7 +968,7 @@ resource "kubernetes_namespace_v1" "monitoring" {
 resource "helm_release" "gateway_api" {
   count            = var.deploy_helm && var.enable_gateway_api ? 1 : 0
   name             = "gateway-api"
-  repository       = "https://gateway-api.sigs.k8s.io/helm-charts"
+  repository       = "oci://ghcr.io/nicklasfrahm/charts/gateway-api"
   chart            = "gateway-api"
   namespace        = "gateway-system"
   create_namespace = true
