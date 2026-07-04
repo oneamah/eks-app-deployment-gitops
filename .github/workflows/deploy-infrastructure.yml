@@ -26,6 +26,7 @@ permissions:
 env:
   AWS_REGION: ${{ github.event.inputs.aws_region || 'us-east-1' }}
   TF_IN_AUTOMATION: true
+  LB_CERTIFICATE_ARN: arn:aws:acm:us-east-1:072754096540:certificate/4b5e7d68-8d5e-49e2-a57f-0a1045800819
 
 jobs:
   terraform-plan:
@@ -49,11 +50,14 @@ jobs:
       - name: Terraform Init
         run: terraform init -input=false
 
+      - name: Terraform Format
+        run: terraform fmt --recursive -check
+
       - name: Terraform Validate
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan
+        run: terraform plan -input=false -out=tfplan -var="lb_certificate_arn=${{ env.LB_CERTIFICATE_ARN }}"
 
       - name: Upload Terraform Plan Artifact
         uses: actions/upload-artifact@v4
