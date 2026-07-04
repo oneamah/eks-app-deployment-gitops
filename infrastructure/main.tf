@@ -224,7 +224,7 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "redirect"
+    type = "redirect"
     redirect {
       port        = "443"
       protocol    = "HTTPS"
@@ -1023,8 +1023,8 @@ resource "kubernetes_manifest" "backend_deployment" {
       }
       strategy = {
         blueGreen = {
-          activeService       = "backend-service"
-          previewService      = "backend-preview-service"
+          activeService        = "backend-service"
+          previewService       = "backend-preview-service"
           autoPromotionEnabled = true
         }
       }
@@ -1372,14 +1372,14 @@ resource "kubernetes_manifest" "frontend_ingress" {
       name      = "frontend-ingress"
       namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
       annotations = {
-        "kubernetes.io/ingress.class"                    = "alb"
-        "alb.ingress.kubernetes.io/group.name"           = "app-shared"
-        "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
-        "alb.ingress.kubernetes.io/target-type"          = "ip"
-        "alb.ingress.kubernetes.io/listen-ports"         = "[{\"HTTP\":80},{\"HTTPS\":443}]"
-        "alb.ingress.kubernetes.io/certificate-arn"      = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
-        "alb.ingress.kubernetes.io/ssl-redirect"         = "443"
-        "external-dns.alpha.kubernetes.io/hostname"      = "marmil.co"
+        "kubernetes.io/ingress.class"               = "alb"
+        "alb.ingress.kubernetes.io/group.name"      = "app-shared"
+        "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"     = "ip"
+        "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\":80},{\"HTTPS\":443}]"
+        "alb.ingress.kubernetes.io/certificate-arn" = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
+        "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+        "external-dns.alpha.kubernetes.io/hostname" = "marmil.co"
       }
     }
     spec = {
@@ -1425,14 +1425,14 @@ resource "kubernetes_manifest" "backend_ingress" {
       name      = "backend-ingress"
       namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
       annotations = {
-        "kubernetes.io/ingress.class"                    = "alb"
-        "alb.ingress.kubernetes.io/group.name"           = "app-shared"
-        "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
-        "alb.ingress.kubernetes.io/target-type"          = "ip"
-        "alb.ingress.kubernetes.io/listen-ports"         = "[{\"HTTP\":80},{\"HTTPS\":443}]"
-        "alb.ingress.kubernetes.io/certificate-arn"      = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
-        "alb.ingress.kubernetes.io/ssl-redirect"         = "443"
-        "external-dns.alpha.kubernetes.io/hostname"      = "api.marmil.co"
+        "kubernetes.io/ingress.class"               = "alb"
+        "alb.ingress.kubernetes.io/group.name"      = "app-shared"
+        "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"     = "ip"
+        "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\":80},{\"HTTPS\":443}]"
+        "alb.ingress.kubernetes.io/certificate-arn" = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
+        "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+        "external-dns.alpha.kubernetes.io/hostname" = "api.marmil.co"
       }
     }
     spec = {
@@ -1478,14 +1478,14 @@ resource "kubernetes_manifest" "monitoring_ingress" {
       name      = "monitoring-ingress"
       namespace = kubernetes_namespace_v1.monitoring[0].metadata[0].name
       annotations = {
-        "kubernetes.io/ingress.class"                    = "alb"
-        "alb.ingress.kubernetes.io/group.name"           = "app-shared"
-        "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
-        "alb.ingress.kubernetes.io/target-type"          = "ip"
-        "alb.ingress.kubernetes.io/listen-ports"         = "[{\"HTTP\":80},{\"HTTPS\":443}]"
-        "alb.ingress.kubernetes.io/certificate-arn"      = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
-        "alb.ingress.kubernetes.io/ssl-redirect"         = "443"
-        "external-dns.alpha.kubernetes.io/hostname"      = "monitoring.marmil.co"
+        "kubernetes.io/ingress.class"               = "alb"
+        "alb.ingress.kubernetes.io/group.name"      = "app-shared"
+        "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+        "alb.ingress.kubernetes.io/target-type"     = "ip"
+        "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\":80},{\"HTTPS\":443}]"
+        "alb.ingress.kubernetes.io/certificate-arn" = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
+        "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+        "external-dns.alpha.kubernetes.io/hostname" = "monitoring.marmil.co"
       }
     }
     spec = {
@@ -1790,32 +1790,32 @@ resource "aws_acm_certificate" "monitoring" {
 }
 
 resource "aws_route53_record" "frontend_validation" {
-  count   = var.deploy_kubernetes ? 1 : 0
-  zone_id = var.route53_zone_id
-  name    = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_name
-  type    = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_type
-  records = [tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_value]
-  ttl     = 60
+  count           = var.deploy_kubernetes ? 1 : 0
+  zone_id         = var.route53_zone_id
+  name            = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_name
+  type            = tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_type
+  records         = [tolist(aws_acm_certificate.frontend[0].domain_validation_options)[0].resource_record_value]
+  ttl             = 60
   allow_overwrite = true
 }
 
 resource "aws_route53_record" "backend_validation" {
-  count   = var.deploy_kubernetes ? 1 : 0
-  zone_id = var.route53_zone_id
-  name    = tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_name
-  type    = tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_type
-  records = [tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_value]
-  ttl     = 60
+  count           = var.deploy_kubernetes ? 1 : 0
+  zone_id         = var.route53_zone_id
+  name            = tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_name
+  type            = tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_type
+  records         = [tolist(aws_acm_certificate.backend[0].domain_validation_options)[0].resource_record_value]
+  ttl             = 60
   allow_overwrite = true
 }
 
 resource "aws_route53_record" "monitoring_validation" {
-  count   = var.deploy_kubernetes ? 1 : 0
-  zone_id = var.route53_zone_id
-  name    = tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_name
-  type    = tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_type
-  records = [tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_value]
-  ttl     = 60
+  count           = var.deploy_kubernetes ? 1 : 0
+  zone_id         = var.route53_zone_id
+  name            = tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_name
+  type            = tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_type
+  records         = [tolist(aws_acm_certificate.monitoring[0].domain_validation_options)[0].resource_record_value]
+  ttl             = 60
   allow_overwrite = true
 }
 
