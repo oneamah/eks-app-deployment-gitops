@@ -717,6 +717,10 @@ resource "helm_release" "alb_ingress_controller" {
     {
       name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
       value = aws_iam_role.irsa_alb_controller.arn
+    },
+    {
+      name  = "enableServiceMutatorWebhook"
+      value = "false"
     }
   ]
 
@@ -899,6 +903,10 @@ resource "helm_release" "otel_collector" {
     <<-EOT
     mode: deployment
     fullnameOverride: otel-collector
+    image:
+      repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+    command:
+      name: otelcol-k8s
     config:
       receivers:
         otlp:
@@ -980,20 +988,20 @@ resource "aws_iam_role" "node_group" {
 }
 
 resource "kubernetes_namespace_v1" "backend" {
-  count = 0
+  count = var.deploy_kubernetes ? 1 : 0
   metadata {
     name = "backend"
   }
 }
 resource "kubernetes_namespace_v1" "frontend" {
-  count = 0
+  count = var.deploy_kubernetes ? 1 : 0
   metadata {
     name = "frontend"
   }
 }
 
 resource "kubernetes_namespace_v1" "monitoring" {
-  count = 0
+  count = var.deploy_kubernetes ? 1 : 0
   metadata {
     name = "monitoring"
   }
@@ -1240,6 +1248,8 @@ resource "kubernetes_manifest" "tls_certificate" {
       dnsNames = ["marmil.co"]
     }
   }
+
+  depends_on = [helm_release.cert_manager]
 }
 
 resource "kubernetes_manifest" "cluster_issuer" {
@@ -1260,6 +1270,8 @@ resource "kubernetes_manifest" "cluster_issuer" {
       }
     }
   }
+
+  depends_on = [helm_release.cert_manager]
 }
 
 resource "kubernetes_manifest" "backend_service" {
