@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "frontend.fullname" . }}
+  labels:
+    {{- include "frontend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "frontend.fullname" . }}
+  strategy:
+    canary:
+      stableService: {{ .Values.service.stableName }}
+      canaryService: {{ .Values.service.canaryName }}
+      steps:
+      {{- range .Values.rollout.canary.steps }}
+      {{- if hasKey . "setWeight" }}
+      - setWeight: {{ .setWeight }}
+      {{- else if hasKey . "pauseSeconds" }}
+      - pause:
+          duration: "{{ .pauseSeconds }}s"
+      {{- end }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "frontend.fullname" . }}
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

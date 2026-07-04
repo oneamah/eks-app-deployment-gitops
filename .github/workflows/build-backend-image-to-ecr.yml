@@ -1,0 +1,81 @@
+name: Build Backend Image To ECR
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:
+        description: AWS region for ECR
+        required: false
+        default: us-east-1
+        type: string
+      image_tag:
+        description: Optional image tag override (defaults to commit SHA)
+        required: false
+        type: string
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/build-backend-image-to-ecr.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ github.event.inputs.aws_region || 'us-east-1' }}
+
+jobs:
+  build-backend-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure backend Dockerfile exists
+        shell: bash
+        run: |
+          if [ ! -f backend/Dockerfile ]; then
+            echo "Missing backend/Dockerfile. Add it before running this workflow."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve registry and image tags
+        id: meta
+        shell: bash
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGISTRY="$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGE_URI="$REGISTRY/backend-app"
+          TAG_INPUT="${{ github.event.inputs.image_tag }}"
+          if [ -n "$TAG_INPUT" ]; then
+            IMAGE_TAG="$TAG_INPUT"
+          else
+            IMAGE_TAG="${GITHUB_SHA::12}"
+          fi
+          echo "registry=$REGISTRY" >> "$GITHUB_OUTPUT"
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: |
+          docker build -t ${{ steps.meta.outputs.image_uri }}:${{ steps.meta.outputs.image_tag }} backend
+
+      - name: Push image tags
+        run: |
+          docker push ${{ steps.meta.outputs.image_uri }}:${{ steps.meta.outputs.image_tag }}
+          docker tag ${{ steps.meta.outputs.image_uri }}:${{ steps.meta.outputs.image_tag }} ${{ steps.meta.outputs.image_uri }}:latest
+          docker push ${{ steps.meta.outputs.image_uri }}:latest
+
+      - name: Show pushed image tags
+        run: |
+          aws ecr describe-images --repository-name backend-app --region "$AWS_REGION" --query 'imageDetails[].imageTags' --output json

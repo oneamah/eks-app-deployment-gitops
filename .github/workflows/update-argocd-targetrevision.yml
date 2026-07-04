@@ -1,0 +1,85 @@
+name: Update ArgoCD Target Revision
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Which app manifest to update
+        required: true
+        default: frontend
+        type: choice
+        options:
+          - frontend
+          - backend
+          - all
+      version:
+        description: Chart version to set as targetRevision
+        required: true
+        type: string
+  workflow_run:
+    workflows:
+      - Publish Frontend Chart To ECR
+      - Publish Backend Chart To ECR
+    types:
+      - completed
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  update-target-revision:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve app and version
+        id: resolve
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "app=${{ github.event.inputs.app }}" >> "$GITHUB_OUTPUT"
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event.workflow_run.name }}" = "Publish Frontend Chart To ECR" ]; then
+            echo "app=frontend" >> "$GITHUB_OUTPUT"
+            VERSION=$(grep '^version:' charts/frontend/Chart.yaml | awk '{print $2}')
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.workflow_run.name }}" = "Publish Backend Chart To ECR" ]; then
+            echo "app=backend" >> "$GITHUB_OUTPUT"
+            VERSION=$(grep '^version:' charts/backend/Chart.yaml | awk '{print $2}')
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unsupported workflow trigger: ${{ github.event.workflow_run.name }}"
+            exit 1
+          fi
+
+      - name: Update frontend targetRevision
+        if: steps.resolve.outputs.app == 'frontend' || steps.resolve.outputs.app == 'all'
+        shell: bash
+        run: |
+          sed -i -E "s/^(\s*targetRevision:\s*).*/\1${{ steps.resolve.outputs.version }}/" gitops/frontend/application.yaml
+
+      - name: Update backend targetRevision
+        if: steps.resolve.outputs.app == 'backend' || steps.resolve.outputs.app == 'all'
+        shell: bash
+        run: |
+          sed -i -E "s/^(\s*targetRevision:\s*).*/\1${{ steps.resolve.outputs.version }}/" gitops/backend/application.yaml
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No targetRevision changes detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gitops/frontend/application.yaml gitops/backend/application.yaml
+          git commit -m "chore(argocd): update targetRevision to ${{ steps.resolve.outputs.version }}"
+          git push

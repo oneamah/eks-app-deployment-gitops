@@ -1,0 +1,5 @@
+app/bin
+app/obj
+.git
+.github
+.vscode

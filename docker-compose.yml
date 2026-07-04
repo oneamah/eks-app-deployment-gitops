@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: eks-backend-local:dev
+    container_name: eks-backend-local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Cors__AllowedOrigins__0: http://localhost:8080
+      Cors__AllowedOrigins__1: http://frontend
+    ports:
+      - "8081:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: eks-frontend-local:dev
+    container_name: eks-frontend-local
+    environment:
+      API_BASE_URL: http://backend:8080
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"

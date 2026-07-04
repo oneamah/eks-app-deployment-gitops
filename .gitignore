@@ -1,0 +1,97 @@
+# -----------------------------
+# OS / Editor artifacts
+# -----------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.tmp
+
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -----------------------------
+# Secrets / local env
+# -----------------------------
+.env
+.env.*
+!.env.example
+*.local
+
+# -----------------------------
+# .NET / C# (backend)
+# -----------------------------
+**/bin/
+**/obj/
+*.rsuser
+
+# Test / coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# -----------------------------
+# Node / Angular (frontend)
+# -----------------------------
+**/node_modules/
+**/.angular/
+**/dist/
+**/out-tsc/
+**/.cache/
+**/.eslintcache
+**/.npm/
+
+# Package manager caches
+.pnpm-store/
+
+# -----------------------------
+# Terraform (infrastructure)
+# -----------------------------
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform variable files (usually secrets)
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# -----------------------------
+# Docker / containers
+# -----------------------------
+docker-compose.override.yml
+
+# -----------------------------
+# Kubernetes / Helm artifacts
+# -----------------------------
+*.kubeconfig
+.kube/
+**/charts/*.tgz
+
+# -----------------------------
+# Misc build artifacts
+# -----------------------------
+*.pid
+*.seed
+*.pid.lock

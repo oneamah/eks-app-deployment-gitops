@@ -1,0 +1,41 @@
+replicaCount: 2
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  stableName: frontend-service
+  canaryName: frontend-canary-service
+  port: 80
+  targetPort: 80
+
+rollout:
+  canary:
+    steps:
+      - setWeight: 20
+      - pauseSeconds: 60
+      - setWeight: 50
+      - pauseSeconds: 60
+      - setWeight: 100
+
+ingress:
+  enabled: true
+  host: marmil.co
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: app-shared
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:123456789012:certificate/replace-me
+    external-dns.alpha.kubernetes.io/hostname: marmil.co
+
+env:
+  OTEL_SERVICE_NAME: frontend-angular
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.monitoring.svc.cluster.local:4318
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
+resources: {}

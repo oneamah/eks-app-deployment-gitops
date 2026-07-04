@@ -1,0 +1,26 @@
+<main class="page">
+  <section class="card">
+    <h1>{{ title() }}</h1>
+    <p class="meta">API Base URL: {{ apiUrlLabel() }}</p>
+
+    <button type="button" (click)="checkHealth()" [disabled]="loading()">
+      {{ loading() ? 'Checking...' : 'Check Backend Health' }}
+    </button>
+
+    @if (health(); as data) {
+      <div class="status ok">
+        <h2>Backend Healthy</h2>
+        <p>Status: {{ data.status }}</p>
+        <p>Service: {{ data.service }}</p>
+        <p>Time: {{ data.timeUtc }}</p>
+      </div>
+    }
+
+    @if (error(); as message) {
+      <div class="status error">
+        <h2>Backend Unreachable</h2>
+        <p>{{ message }}</p>
+      </div>
+    }
+  </section>
+</main>

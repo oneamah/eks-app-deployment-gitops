@@ -1,0 +1,82 @@
+name: Publish Frontend Chart To ECR
+
+on:
+  workflow_dispatch:
+    inputs:
+      chart_version:
+        description: Chart version to publish (defaults to Chart.yaml version)
+        required: false
+        type: string
+      aws_region:
+        description: AWS region for ECR
+        required: false
+        default: us-east-1
+        type: string
+  push:
+    branches: ["main"]
+    paths:
+      - "charts/frontend/**"
+      - ".github/workflows/publish-frontend-chart-to-ecr.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ github.event.inputs.aws_region || 'us-east-1' }}
+
+jobs:
+  publish-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve AWS account ID
+        id: aws
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> "$GITHUB_OUTPUT"
+          echo "registry=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com" >> "$GITHUB_OUTPUT"
+
+      - name: Replace account placeholder in frontend chart values
+        run: |
+          sed -i "s/123456789012/${{ steps.aws.outputs.account_id }}/g" charts/frontend/values.yaml
+
+      - name: Validate certificate placeholder was configured
+        run: |
+          if grep -R "certificate/replace-me" charts/frontend/values.yaml; then
+            echo "Replace certificate placeholder in charts/frontend/values.yaml before publishing chart."
+            exit 1
+          fi
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint frontend chart
+        run: helm lint charts/frontend
+
+      - name: Package frontend chart
+        run: |
+          mkdir -p dist
+          if [ -n "${{ github.event.inputs.chart_version }}" ]; then
+            helm package charts/frontend --version "${{ github.event.inputs.chart_version }}" --destination dist
+          else
+            helm package charts/frontend --destination dist
+          fi
+
+      - name: Push frontend chart to ECR OCI
+        run: helm push dist/frontend-*.tgz oci://${{ steps.aws.outputs.registry }}/frontend-chart
+
+      - name: Show pushed frontend chart tags
+        run: |
+          aws ecr describe-images --repository-name frontend-chart --region "$AWS_REGION" --query 'imageDetails[].imageTags' --output json
