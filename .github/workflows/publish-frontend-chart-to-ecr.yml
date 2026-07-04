@@ -15,6 +15,7 @@ on:
   push:
     branches: ["main"]
     paths:
+      - "frontend/**"
       - "charts/frontend/**"
       - ".github/workflows/publish-frontend-chart-to-ecr.yml"
 
@@ -52,6 +53,24 @@ jobs:
         run: |
           sed -i "s/123456789012/${{ steps.aws.outputs.account_id }}/g" charts/frontend/values.yaml
 
+      - name: Resolve image and chart versions
+        id: versions
+        shell: bash
+        run: |
+          IMAGE_TAG="${GITHUB_SHA::12}"
+          if [ -n "${{ github.event.inputs.chart_version }}" ]; then
+            CHART_VERSION="${{ github.event.inputs.chart_version }}"
+          else
+            CHART_VERSION="0.1.0-${IMAGE_TAG}"
+          fi
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "chart_version=$CHART_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set frontend chart image tag
+        shell: bash
+        run: |
+          sed -i -E "0,/^  tag: .*/s//  tag: ${{ steps.versions.outputs.image_tag }}/" charts/frontend/values.yaml
+
       - name: Validate certificate placeholder was configured
         run: |
           if grep -R "certificate/replace-me" charts/frontend/values.yaml; then
@@ -68,11 +87,10 @@ jobs:
       - name: Package frontend chart
         run: |
           mkdir -p dist
-          if [ -n "${{ github.event.inputs.chart_version }}" ]; then
-            helm package charts/frontend --version "${{ github.event.inputs.chart_version }}" --destination dist
-          else
-            helm package charts/frontend --destination dist
-          fi
+          helm package charts/frontend \
+            --version "${{ steps.versions.outputs.chart_version }}" \
+            --app-version "${{ steps.versions.outputs.image_tag }}" \
+            --destination dist
 
       - name: Ensure frontend OCI repository exists
         run: |

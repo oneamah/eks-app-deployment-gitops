@@ -47,7 +47,8 @@ jobs:
 
           if [ "${{ github.event.workflow_run.name }}" = "Publish Frontend Chart To ECR" ]; then
             echo "app=frontend" >> "$GITHUB_OUTPUT"
-            VERSION=$(grep '^version:' charts/frontend/Chart.yaml | awk '{print $2}')
+            SHORT_SHA=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-12)
+            VERSION="0.1.0-${SHORT_SHA}"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event.workflow_run.name }}" = "Publish Backend Chart To ECR" ]; then
             echo "app=backend" >> "$GITHUB_OUTPUT"
