@@ -1006,10 +1006,10 @@ resource "helm_release" "argocd_rollouts" {
 }
 
 resource "kubernetes_manifest" "backend_deployment" {
-  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
+  count = var.deploy_kubernetes ? 1 : 0
   manifest = {
-    apiVersion = "argoproj.io/v1alpha1"
-    kind       = "Rollout"
+    apiVersion = "apps/v1"
+    kind       = "Deployment"
     metadata = {
       name      = "backend-rollout"
       namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
@@ -1022,11 +1022,7 @@ resource "kubernetes_manifest" "backend_deployment" {
         }
       }
       strategy = {
-        blueGreen = {
-          activeService        = "backend-service"
-          previewService       = "backend-preview-service"
-          autoPromotionEnabled = true
-        }
+        type = "RollingUpdate"
       }
       template = {
         metadata = {
@@ -1070,16 +1066,15 @@ resource "kubernetes_manifest" "backend_deployment" {
   }
 
   depends_on = [
-    kubernetes_namespace_v1.backend,
-    helm_release.argocd_rollouts
+    kubernetes_namespace_v1.backend
   ]
 }
 
 resource "kubernetes_manifest" "frontend_deployment" {
-  count = var.deploy_kubernetes && var.deploy_crd_resources ? 1 : 0
+  count = var.deploy_kubernetes ? 1 : 0
   manifest = {
-    apiVersion = "argoproj.io/v1alpha1"
-    kind       = "Rollout"
+    apiVersion = "apps/v1"
+    kind       = "Deployment"
     metadata = {
       name      = "frontend-rollout"
       namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
@@ -1092,31 +1087,7 @@ resource "kubernetes_manifest" "frontend_deployment" {
         }
       }
       strategy = {
-        canary = {
-          stableService = "frontend-service"
-          canaryService = "frontend-canary-service"
-          steps = [
-            {
-              setWeight = 20
-            },
-            {
-              pause = {
-                duration = "60s"
-              }
-            },
-            {
-              setWeight = 50
-            },
-            {
-              pause = {
-                duration = "60s"
-              }
-            },
-            {
-              setWeight = 100
-            }
-          ]
-        }
+        type = "RollingUpdate"
       }
       template = {
         metadata = {
@@ -1156,8 +1127,7 @@ resource "kubernetes_manifest" "frontend_deployment" {
   }
 
   depends_on = [
-    kubernetes_namespace_v1.frontend,
-    helm_release.argocd_rollouts
+    kubernetes_namespace_v1.frontend
   ]
 }
 
