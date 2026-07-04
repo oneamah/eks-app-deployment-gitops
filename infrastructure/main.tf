@@ -987,23 +987,36 @@ resource "aws_iam_role" "node_group" {
   })
 }
 
-resource "kubernetes_namespace_v1" "backend" {
+resource "kubernetes_manifest" "backend_namespace" {
   count = var.deploy_kubernetes ? 1 : 0
-  metadata {
-    name = "backend"
-  }
-}
-resource "kubernetes_namespace_v1" "frontend" {
-  count = var.deploy_kubernetes ? 1 : 0
-  metadata {
-    name = "frontend"
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.backend_namespace
+    }
   }
 }
 
-resource "kubernetes_namespace_v1" "monitoring" {
+resource "kubernetes_manifest" "frontend_namespace" {
   count = var.deploy_kubernetes ? 1 : 0
-  metadata {
-    name = "monitoring"
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.frontend_namespace
+    }
+  }
+}
+
+resource "kubernetes_manifest" "monitoring_namespace" {
+  count = var.deploy_kubernetes ? 1 : 0
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.monitoring_namespace
+    }
   }
 }
 
@@ -1651,7 +1664,7 @@ resource "kubernetes_manifest" "backend_network_policy" {
     }
   }
 
-  depends_on = [kubernetes_namespace_v1.backend, kubernetes_namespace_v1.frontend]
+  depends_on = [kubernetes_manifest.backend_namespace, kubernetes_manifest.frontend_namespace]
 }
 
 resource "kubernetes_manifest" "frontend_network_policy" {
@@ -1687,7 +1700,7 @@ resource "kubernetes_manifest" "frontend_network_policy" {
     }
   }
 
-  depends_on = [kubernetes_namespace_v1.backend, kubernetes_namespace_v1.frontend]
+  depends_on = [kubernetes_manifest.backend_namespace, kubernetes_manifest.frontend_namespace]
 }
 
 resource "kubernetes_manifest" "monitoring_network_policy" {
@@ -1716,7 +1729,7 @@ resource "kubernetes_manifest" "monitoring_network_policy" {
     }
   }
 
-  depends_on = [kubernetes_namespace_v1.monitoring]
+  depends_on = [kubernetes_manifest.monitoring_namespace]
 }
 
 resource "aws_security_group" "eks_nodes" {
