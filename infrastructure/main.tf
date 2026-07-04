@@ -1124,7 +1124,7 @@ resource "kubernetes_manifest" "backend_deployment" {
   }
 
   depends_on = [
-    kubernetes_namespace_v1.backend
+    kubernetes_manifest.backend_namespace
   ]
 }
 
@@ -1185,7 +1185,7 @@ resource "kubernetes_manifest" "frontend_deployment" {
   }
 
   depends_on = [
-    kubernetes_namespace_v1.frontend
+    kubernetes_manifest.frontend_namespace
   ]
 }
 
