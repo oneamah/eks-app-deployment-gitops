@@ -19,7 +19,7 @@ variable "deploy_kubernetes" {
 variable "deploy_crd_resources" {
   description = "Set true only after CRDs from Helm releases are installed (Argo Rollouts, cert-manager, Gateway API)."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_gateway_api" {
