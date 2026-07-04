@@ -7,13 +7,13 @@ variable "cluster_name" {
 variable "deploy_helm" {
   description = "Set to true after the EKS cluster exists to deploy Helm charts."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "deploy_kubernetes" {
   description = "Set to true after the EKS cluster exists to deploy Kubernetes resources."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "frontend_image" {
