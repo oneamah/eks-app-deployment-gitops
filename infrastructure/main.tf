@@ -882,8 +882,8 @@ resource "helm_release" "tempo" {
       receivers:
         otlp:
           protocols:
-            grpc:
-            http:
+            grpc: {}
+            http: {}
     EOT
   ]
 
@@ -911,8 +911,8 @@ resource "helm_release" "otel_collector" {
       receivers:
         otlp:
           protocols:
-            grpc:
-            http:
+            grpc: {}
+            http: {}
       processors:
         batch: {}
       exporters:
@@ -949,8 +949,8 @@ resource "aws_eks_node_group" "main" {
   node_role_arn   = aws_iam_role.node_group.arn
   subnet_ids      = aws_subnet.private[*].id
   scaling_config {
-    desired_size = 2
-    max_size     = 3
+    desired_size = 3
+    max_size     = 4
     min_size     = 1
   }
 
