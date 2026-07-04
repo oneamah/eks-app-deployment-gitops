@@ -49,7 +49,7 @@ variable "backend_replicas" {
 variable "route53_zone_id" {
   description = "Route53 hosted zone ID used for DNS records when deploy_kubernetes is true."
   type        = string
-  default     = ""
+  default     = "Z06560653HHLUZYIU86O4"
 }
 
 variable "manage_static_route53_records" {
