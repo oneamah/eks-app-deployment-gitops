@@ -31,13 +31,13 @@ variable "enable_gateway_api" {
 variable "frontend_image" {
   description = "Container image for the Angular frontend application."
   type        = string
-  default     = "ghcr.io/your-org/angular-frontend:latest"
+  default     = "072754096540.dkr.ecr.us-east-1.amazonaws.com/frontend-app:latest"
 }
 
 variable "backend_image" {
   description = "Container image for the .NET backend API application."
   type        = string
-  default     = "mcr.microsoft.com/dotnet/samples:aspnetapp"
+  default     = "072754096540.dkr.ecr.us-east-1.amazonaws.com/backend-app:latest"
 }
 
 variable "frontend_container_port" {
