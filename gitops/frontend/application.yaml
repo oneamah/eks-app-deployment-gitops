@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: oci://123456789012.dkr.ecr.us-east-1.amazonaws.com/frontend-chart
     chart: frontend
-    targetRevision: 0.1.0-2905cf4ce93a
+    targetRevision: 0.1.0-8b78bff73800
   destination:
     server: https://kubernetes.default.svc
     namespace: frontend
