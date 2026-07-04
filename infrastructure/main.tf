@@ -60,6 +60,12 @@ resource "random_shuffle" "azs" {
   result_count = 2
 }
 
+locals {
+  backend_namespace    = "backend"
+  frontend_namespace   = "frontend"
+  monitoring_namespace = "monitoring"
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -673,6 +679,7 @@ resource "helm_release" "metrics_server" {
   chart            = "metrics-server"
   namespace        = "kube-system"
   create_namespace = false
+  upgrade_install  = true
 
   depends_on = [aws_eks_node_group.main]
 }
@@ -684,6 +691,7 @@ resource "helm_release" "alb_ingress_controller" {
   chart            = "aws-load-balancer-controller"
   namespace        = "kube-system"
   create_namespace = false
+  upgrade_install  = true
 
   set = [
     {
@@ -725,6 +733,7 @@ resource "helm_release" "external_dns" {
   chart            = "external-dns"
   namespace        = "kube-system"
   create_namespace = false
+  upgrade_install  = true
 
   set = [
     {
@@ -758,6 +767,7 @@ resource "helm_release" "cert_manager" {
   chart            = "cert-manager"
   namespace        = "cert-manager"
   create_namespace = true
+  upgrade_install  = true
 
   set = [
     {
@@ -776,6 +786,7 @@ resource "helm_release" "cluster_autoscaler" {
   chart            = "cluster-autoscaler"
   namespace        = "kube-system"
   create_namespace = false
+  upgrade_install  = true
 
   set = [
     {
@@ -813,6 +824,7 @@ resource "helm_release" "kube_state_metrics" {
   chart            = "kube-state-metrics"
   namespace        = "kube-system"
   create_namespace = false
+  upgrade_install  = true
 
   depends_on = [aws_eks_node_group.main]
 }
@@ -824,6 +836,7 @@ resource "helm_release" "kube_prometheus_stack" {
   chart            = "kube-prometheus-stack"
   namespace        = "monitoring"
   create_namespace = true
+  upgrade_install  = true
 
   values = [
     <<-EOT
@@ -853,6 +866,7 @@ resource "helm_release" "tempo" {
   chart            = "tempo"
   namespace        = "monitoring"
   create_namespace = true
+  upgrade_install  = true
 
   values = [
     <<-EOT
@@ -879,6 +893,7 @@ resource "helm_release" "otel_collector" {
   chart            = "opentelemetry-collector"
   namespace        = "monitoring"
   create_namespace = true
+  upgrade_install  = true
 
   values = [
     <<-EOT
@@ -965,20 +980,20 @@ resource "aws_iam_role" "node_group" {
 }
 
 resource "kubernetes_namespace_v1" "backend" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = 0
   metadata {
     name = "backend"
   }
 }
 resource "kubernetes_namespace_v1" "frontend" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = 0
   metadata {
     name = "frontend"
   }
 }
 
 resource "kubernetes_namespace_v1" "monitoring" {
-  count = var.deploy_kubernetes ? 1 : 0
+  count = 0
   metadata {
     name = "monitoring"
   }
@@ -991,6 +1006,7 @@ resource "helm_release" "gateway_api" {
   chart            = "gateway-api"
   namespace        = "gateway-system"
   create_namespace = true
+  upgrade_install  = true
 
   depends_on = [aws_eks_node_group.main]
 }
@@ -1002,6 +1018,7 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   namespace        = "argocd"
   create_namespace = true
+  upgrade_install  = true
 
   set = [
     {
@@ -1020,6 +1037,7 @@ resource "helm_release" "argocd_rollouts" {
   chart            = "argo-rollouts"
   namespace        = "argo-rollouts"
   create_namespace = true
+  upgrade_install  = true
 
   depends_on = [aws_eks_node_group.main]
 }
@@ -1031,7 +1049,7 @@ resource "kubernetes_manifest" "backend_deployment" {
     kind       = "Deployment"
     metadata = {
       name      = "backend-rollout"
-      namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
+      namespace = local.backend_namespace
     }
     spec = {
       replicas = var.backend_replicas
@@ -1096,7 +1114,7 @@ resource "kubernetes_manifest" "frontend_deployment" {
     kind       = "Deployment"
     metadata = {
       name      = "frontend-rollout"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       replicas = var.frontend_replicas
@@ -1173,7 +1191,7 @@ resource "kubernetes_manifest" "gateway" {
     kind       = "Gateway"
     metadata = {
       name      = "my-gateway"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       gatewayClassName = "my-gateway-class"
@@ -1192,7 +1210,7 @@ resource "kubernetes_manifest" "gateway" {
             certificateRefs = [
               {
                 name      = "my-tls-cert"
-                namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+                namespace = local.frontend_namespace
               }
             ]
           }
@@ -1211,7 +1229,7 @@ resource "kubernetes_manifest" "tls_certificate" {
     kind       = "Certificate"
     metadata = {
       name      = "my-tls-cert"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       secretName = "my-tls-secret"
@@ -1251,7 +1269,7 @@ resource "kubernetes_manifest" "backend_service" {
     kind       = "Service"
     metadata = {
       name      = "backend-service"
-      namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
+      namespace = local.backend_namespace
     }
     spec = {
       selector = {
@@ -1278,7 +1296,7 @@ resource "kubernetes_manifest" "backend_preview_service" {
     kind       = "Service"
     metadata = {
       name      = "backend-preview-service"
-      namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
+      namespace = local.backend_namespace
     }
     spec = {
       selector = {
@@ -1305,7 +1323,7 @@ resource "kubernetes_manifest" "frontend_service" {
     kind       = "Service"
     metadata = {
       name      = "frontend-service"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       selector = {
@@ -1332,7 +1350,7 @@ resource "kubernetes_manifest" "frontend_canary_service" {
     kind       = "Service"
     metadata = {
       name      = "frontend-canary-service"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       selector = {
@@ -1359,7 +1377,7 @@ resource "kubernetes_manifest" "frontend_ingress" {
     kind       = "Ingress"
     metadata = {
       name      = "frontend-ingress"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
       annotations = {
         "kubernetes.io/ingress.class"               = "alb"
         "alb.ingress.kubernetes.io/group.name"      = "app-shared"
@@ -1412,7 +1430,7 @@ resource "kubernetes_manifest" "backend_ingress" {
     kind       = "Ingress"
     metadata = {
       name      = "backend-ingress"
-      namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
+      namespace = local.backend_namespace
       annotations = {
         "kubernetes.io/ingress.class"               = "alb"
         "alb.ingress.kubernetes.io/group.name"      = "app-shared"
@@ -1465,7 +1483,7 @@ resource "kubernetes_manifest" "monitoring_ingress" {
     kind       = "Ingress"
     metadata = {
       name      = "monitoring-ingress"
-      namespace = kubernetes_namespace_v1.monitoring[0].metadata[0].name
+      namespace = local.monitoring_namespace
       annotations = {
         "kubernetes.io/ingress.class"               = "alb"
         "alb.ingress.kubernetes.io/group.name"      = "app-shared"
@@ -1518,13 +1536,13 @@ resource "kubernetes_manifest" "frontend_route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "frontend-route"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       parentRefs = [
         {
           name      = "my-gateway"
-          namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+          namespace = local.frontend_namespace
         }
       ]
       hostnames = ["marmil.co"]
@@ -1559,13 +1577,13 @@ resource "kubernetes_manifest" "backend_route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "backend-route"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       parentRefs = [
         {
           name      = "my-gateway"
-          namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+          namespace = local.frontend_namespace
         }
       ]
       hostnames = ["marmil.co"]
@@ -1600,7 +1618,7 @@ resource "kubernetes_manifest" "backend_network_policy" {
     kind       = "NetworkPolicy"
     metadata = {
       name      = "backend-network-policy"
-      namespace = kubernetes_namespace_v1.backend[0].metadata[0].name
+      namespace = local.backend_namespace
     }
     spec = {
       podSelector = {}
@@ -1611,7 +1629,7 @@ resource "kubernetes_manifest" "backend_network_policy" {
             {
               namespaceSelector = {
                 matchLabels = {
-                  "kubernetes.io/metadata.name" = kubernetes_namespace_v1.frontend[0].metadata[0].name
+                  "kubernetes.io/metadata.name" = local.frontend_namespace
                 }
               }
             }
@@ -1631,7 +1649,7 @@ resource "kubernetes_manifest" "frontend_network_policy" {
     kind       = "NetworkPolicy"
     metadata = {
       name      = "frontend-network-policy"
-      namespace = kubernetes_namespace_v1.frontend[0].metadata[0].name
+      namespace = local.frontend_namespace
     }
     spec = {
       podSelector = {}
@@ -1642,7 +1660,7 @@ resource "kubernetes_manifest" "frontend_network_policy" {
             {
               namespaceSelector = {
                 matchLabels = {
-                  "kubernetes.io/metadata.name" = kubernetes_namespace_v1.backend[0].metadata[0].name
+                  "kubernetes.io/metadata.name" = local.backend_namespace
                 }
               }
             },
@@ -1667,7 +1685,7 @@ resource "kubernetes_manifest" "monitoring_network_policy" {
     kind       = "NetworkPolicy"
     metadata = {
       name      = "monitoring-network-policy"
-      namespace = kubernetes_namespace_v1.monitoring[0].metadata[0].name
+      namespace = local.monitoring_namespace
     }
     spec = {
       podSelector = {}
