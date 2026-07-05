@@ -1,0 +1,29 @@
+<section class="card">
+  <div class="toolbar">
+    <h2>Latest Posts</h2>
+    <button type="button" (click)="loadPosts()" [disabled]="loading()">
+      {{ loading() ? 'Refreshing...' : 'Refresh' }}
+    </button>
+  </div>
+
+  @if (error(); as message) {
+    <div class="status error">{{ message }}</div>
+  }
+
+  @if (!loading() && posts().length === 0) {
+    <p class="empty">No posts published yet.</p>
+  }
+
+  <ul class="post-list">
+    @for (post of posts(); track post.id) {
+      <li class="post-item">
+        @if (post.imageUrl) {
+          <img [src]="post.imageUrl" alt="Post image" />
+        }
+        <h3>{{ post.title }}</h3>
+        <p class="post-content">{{ post.content }}</p>
+        <p class="post-time">{{ formatUtc(post.createdAt) }}</p>
+      </li>
+    }
+  </ul>
+</section>

@@ -1,0 +1,161 @@
+.card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.card-inner {
+  margin-top: 0.8rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.toolbar h2,
+.form h3 {
+  margin: 0;
+}
+
+.form {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.9rem;
+  background: #f8fafc;
+  display: grid;
+  gap: 0.6rem;
+}
+
+label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  background: #0f766e;
+  color: #ffffff;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button.secondary {
+  background: #0f172a;
+}
+
+button.danger {
+  background: #b91c1c;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status.error {
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  border-radius: 10px;
+  padding: 0.7rem;
+}
+
+.post-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.post-item {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #ffffff;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.post-header h3 {
+  margin: 0;
+}
+
+.post-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.post-item img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 0.6rem;
+}
+
+.post-content {
+  margin: 0.55rem 0 0;
+  white-space: pre-wrap;
+}
+
+.post-time {
+  margin: 0.45rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.edit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.edit-card {
+  width: min(620px, 100%);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.edit-card h3 {
+  margin: 0;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.6rem;
+}

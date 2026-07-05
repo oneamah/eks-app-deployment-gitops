@@ -53,8 +53,9 @@ jobs:
         shell: bash
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "frontend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend-app:latest" >> "$GITHUB_OUTPUT"
-          echo "backend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-app:latest" >> "$GITHUB_OUTPUT"
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
+          echo "frontend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend-app:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "backend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-app:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -127,8 +128,9 @@ jobs:
         shell: bash
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "frontend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend-app:latest" >> "$GITHUB_OUTPUT"
-          echo "backend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-app:latest" >> "$GITHUB_OUTPUT"
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-12)
+          echo "frontend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/frontend-app:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "backend_image=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-app:${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

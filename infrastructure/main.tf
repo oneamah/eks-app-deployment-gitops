@@ -1114,6 +1114,18 @@ resource "kubernetes_manifest" "backend_deployment" {
                   value = "Server=mysql.default.svc.cluster.local;Port=3306;Database=appdb;User ID=backend_app;Password=BackendApp#2026;Connection Timeout=5;"
                 },
                 {
+                  name  = "S3__Region"
+                  value = data.aws_region.current.region
+                },
+                {
+                  name  = "S3__BucketName"
+                  value = var.post_images_bucket_name
+                },
+                {
+                  name  = "S3__PublicBaseUrl"
+                  value = var.post_images_public_base_url
+                },
+                {
                   name  = "OTEL_SERVICE_NAME"
                   value = "backend-api"
                 },

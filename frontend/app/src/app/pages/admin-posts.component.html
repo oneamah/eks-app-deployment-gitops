@@ -1,0 +1,104 @@
+<section class="card">
+  <div class="toolbar">
+    <h2>Admin Post Management</h2>
+    <button type="button" (click)="loadPosts()" [disabled]="loading()">
+      {{ loading() ? 'Refreshing...' : 'Refresh' }}
+    </button>
+  </div>
+
+  @if (error(); as message) {
+    <div class="status error">{{ message }}</div>
+  }
+
+  <div class="form card-inner">
+    <h3>Create Post</h3>
+
+    <label>
+      Title
+      <input type="text" [value]="titleInput()" (input)="onCreateTitle($any($event.target).value)" />
+    </label>
+
+    <label>
+      Content
+      <textarea rows="4" [value]="contentInput()" (input)="onCreateContent($any($event.target).value)"></textarea>
+    </label>
+
+    <label>
+      Image URL (optional)
+      <input type="text" [value]="imageUrlInput()" (input)="onCreateImageUrl($any($event.target).value)" />
+    </label>
+
+    <label>
+      Upload image to S3 (optional)
+      <input type="file" accept="image/*" (change)="onCreateFile($event)" />
+    </label>
+
+    <button type="button" (click)="createPost()" [disabled]="creating()">
+      {{ creating() ? 'Creating...' : 'Create' }}
+    </button>
+
+    @if (createError(); as message) {
+      <div class="status error">{{ message }}</div>
+    }
+  </div>
+
+  <ul class="post-list">
+    @for (post of posts(); track post.id) {
+      <li class="post-item">
+        <div class="post-header">
+          <h3>{{ post.title }}</h3>
+          <div class="post-actions">
+            <button type="button" class="secondary" (click)="startEdit(post)">Edit</button>
+            <button type="button" class="danger" (click)="deletePost(post.id)">Delete</button>
+          </div>
+        </div>
+
+        @if (post.imageUrl) {
+          <img [src]="post.imageUrl" alt="Post image" />
+        }
+
+        <p class="post-content">{{ post.content }}</p>
+        <p class="post-time">Created {{ formatUtc(post.createdAt) }}</p>
+      </li>
+    }
+  </ul>
+
+  @if (editId() !== null) {
+    <div class="edit-overlay">
+      <div class="edit-card">
+        <h3>Edit Post</h3>
+
+        <label>
+          Title
+          <input type="text" [value]="editTitle()" (input)="onEditTitle($any($event.target).value)" />
+        </label>
+
+        <label>
+          Content
+          <textarea rows="4" [value]="editContent()" (input)="onEditContent($any($event.target).value)"></textarea>
+        </label>
+
+        <label>
+          Image URL (optional)
+          <input type="text" [value]="editImageUrl()" (input)="onEditImageUrl($any($event.target).value)" />
+        </label>
+
+        <label>
+          Upload replacement image to S3
+          <input type="file" accept="image/*" (change)="onEditFile($event)" />
+        </label>
+
+        <div class="edit-actions">
+          <button type="button" (click)="saveEdit()" [disabled]="savingEdit()">
+            {{ savingEdit() ? 'Saving...' : 'Save' }}
+          </button>
+          <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+        </div>
+
+        @if (editError(); as message) {
+          <div class="status error">{{ message }}</div>
+        }
+      </div>
+    </div>
+  }
+</section>

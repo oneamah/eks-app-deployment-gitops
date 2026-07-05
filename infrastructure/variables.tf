@@ -75,3 +75,15 @@ variable "lb_certificate_arn" {
   type        = string
   default     = null
 }
+
+variable "post_images_bucket_name" {
+  description = "S3 bucket name used by backend for post image uploads."
+  type        = string
+  default     = ""
+}
+
+variable "post_images_public_base_url" {
+  description = "Optional public base URL for uploaded images (for example CloudFront URL)."
+  type        = string
+  default     = ""
+}
