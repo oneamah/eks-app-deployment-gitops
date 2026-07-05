@@ -22,5 +22,66 @@
         <p>{{ message }}</p>
       </div>
     }
+
+    <hr class="divider" />
+
+    <h2>Create Post</h2>
+    <div class="form-grid">
+      <label>
+        Title
+        <input
+          type="text"
+          [value]="titleInput()"
+          (input)="onTitleChange($any($event.target).value)"
+          placeholder="Post title" />
+      </label>
+
+      <label>
+        Content
+        <textarea
+          rows="4"
+          [value]="contentInput()"
+          (input)="onContentChange($any($event.target).value)"
+          placeholder="Write your post"></textarea>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button type="button" (click)="createPost()" [disabled]="creatingPost()">
+        {{ creatingPost() ? 'Creating...' : 'Create Post' }}
+      </button>
+      <button type="button" class="secondary" (click)="loadPosts()" [disabled]="postsLoading()">
+        {{ postsLoading() ? 'Refreshing...' : 'Refresh Posts' }}
+      </button>
+    </div>
+
+    @if (createPostError(); as message) {
+      <div class="status error">
+        <h2>Create Failed</h2>
+        <p>{{ message }}</p>
+      </div>
+    }
+
+    @if (postsError(); as message) {
+      <div class="status error">
+        <h2>Posts Unavailable</h2>
+        <p>{{ message }}</p>
+      </div>
+    }
+
+    <h2 class="posts-title">Posts</h2>
+    @if (posts().length === 0) {
+      <p class="empty">No posts yet.</p>
+    }
+
+    <ul class="post-list">
+      @for (post of posts(); track post.id) {
+        <li class="post-item">
+          <h3>{{ post.title }}</h3>
+          <p class="post-content">{{ post.content }}</p>
+          <p class="post-time">{{ formatUtc(post.createdAt) }}</p>
+        </li>
+      }
+    </ul>
   </section>
 </main>

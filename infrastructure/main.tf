@@ -1110,6 +1110,10 @@ resource "kubernetes_manifest" "backend_deployment" {
                   value = "https://api.marmil.co"
                 },
                 {
+                  name  = "ConnectionStrings__DefaultConnection"
+                  value = "Server=mysql.default.svc.cluster.local;Port=3306;Database=appdb;User ID=backend_app;Password=BackendApp#2026;Connection Timeout=5;"
+                },
+                {
                   name  = "OTEL_SERVICE_NAME"
                   value = "backend-api"
                 },
