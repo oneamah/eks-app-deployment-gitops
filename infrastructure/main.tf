@@ -1098,6 +1098,18 @@ resource "kubernetes_manifest" "backend_deployment" {
                   value = "http://+:8080"
                 },
                 {
+                  name  = "Cors__AllowedOrigins__0"
+                  value = "https://marmil.co"
+                },
+                {
+                  name  = "Cors__AllowedOrigins__1"
+                  value = "https://www.marmil.co"
+                },
+                {
+                  name  = "Cors__AllowedOrigins__2"
+                  value = "https://api.marmil.co"
+                },
+                {
                   name  = "OTEL_SERVICE_NAME"
                   value = "backend-api"
                 },
@@ -1157,6 +1169,10 @@ resource "kubernetes_manifest" "frontend_deployment" {
               name  = "frontend-container"
               image = var.frontend_image
               env = [
+                {
+                  name  = "API_BASE_URL"
+                  value = "https://api.marmil.co"
+                },
                 {
                   name  = "OTEL_SERVICE_NAME"
                   value = "frontend-angular"
@@ -1461,6 +1477,7 @@ resource "kubernetes_manifest" "backend_ingress" {
         "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\":80},{\"HTTPS\":443}]"
         "alb.ingress.kubernetes.io/certificate-arn" = "${aws_acm_certificate_validation.frontend[0].certificate_arn},${aws_acm_certificate_validation.backend[0].certificate_arn},${aws_acm_certificate_validation.monitoring[0].certificate_arn}"
         "alb.ingress.kubernetes.io/ssl-redirect"    = "443"
+        "alb.ingress.kubernetes.io/healthcheck-path" = "/health"
         "external-dns.alpha.kubernetes.io/hostname" = "api.marmil.co"
       }
     }
